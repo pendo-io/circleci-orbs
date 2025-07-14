@@ -5,7 +5,10 @@ executors:
   default:
     description: "Terraform executor"
     docker:
-      - image: ovotech/terraform:latest
+      - image: us-docker.pkg.dev/pendo-dev/pendo-artifact/terraform:latest
+        auth:
+            username: _json_key
+            password: $GCR_JSON_KEY_FILE
 
 aliases:
   parameters:
