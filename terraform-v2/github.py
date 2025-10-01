@@ -32,7 +32,7 @@ def find_pr() -> str:
         url = f'https://api.github.com/repos/{owner}/{repo}/pulls'
 
         while True:
-            response = github.get(url, params={'state': 'all'})
+            response = github.get(url, params={'state': 'open'})
             response.raise_for_status()
 
             for pr in response.json():
