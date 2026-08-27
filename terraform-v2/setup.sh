@@ -33,6 +33,7 @@ export TF_INPUT=false
 export TF_PLUGIN_CACHE_DIR=/usr/local/share/terraform/plugin-cache
 export TF_IN_AUTOMATION=yep
 
+set +x
 # Configure cloud credentials
 GCLOUD_SERVICE_KEY="${GCLOUD_SERVICE_KEY:-$GOOGLE_SERVICE_ACCOUNT}"
 
@@ -49,6 +50,7 @@ if [[ -n "$GCLOUD_SERVICE_KEY" ]]; then
     export GOOGLE_APPLICATION_CREDENTIALS=/tmp/google_creds
     gcloud auth activate-service-account --key-file /tmp/google_creds
 fi
+set -x
 
 if [[ -n "$GOOGLE_PROJECT_ID" ]]; then
     gcloud --quiet config set project "$GOOGLE_PROJECT_ID"
