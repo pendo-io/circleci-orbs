@@ -156,6 +156,9 @@ commands:
             include select_workspace.sh
             include set_plan_args.sh
             include plan.sh
+      - store_artifacts:
+          path: plan.txt
+          destination: << parameters.path >>/plan.txt
 
   apply:
     description: "Apply a Terraform plan"
