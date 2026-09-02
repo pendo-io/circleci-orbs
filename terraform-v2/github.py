@@ -163,7 +163,7 @@ class TerraformComment:
         if len(comment) > MAX_COMMENT_LENGTH:
             comment = self._render_comment(
                 'Plan is too large to post as a comment. '
-                'See the plan.txt artifact in the CircleCI job.')
+                'See the plan output in the CircleCI job.')
 
         if self._comment_url is None:
             # Create a new comment
