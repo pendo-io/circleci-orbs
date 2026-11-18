@@ -54,3 +54,93 @@ Orbs follow the conventions:
 Other orbs in the ovotech namespace:
 
 - [ovotech/shipit@1](https://github.com/ovotech/pe-orbs/tree/master/shipit) - Run shipit and record deployments to https://shipit.ovotech.org.uk.
+
+## Releasing pendo/terraform-v2
+
+The orb is published manually to the private `pendo` namespace with the CircleCI CLI. The `publish_orb` job in `.circleci/continue_config.yml` and `orb_version.txt` belong to the upstream ovotech flow and are not used.
+
+Steps below use CircleCI CLI v1 (tested with `circleci 1.15.0`).
+
+### Prerequisites
+
+- CircleCI CLI v1 authenticated with a personal API token that can publish to the `pendo` namespace.
+- Changes merged to `master`.
+
+### Steps
+
+Run from the repo root.
+
+1. Update master:
+
+   ```bash
+   git checkout master
+   git pull
+   ```
+
+2. Flatten the orb. `orb.yml` uses `include <file>` directives that `tools/include.py` expands. The script prints to stdout and does not create a file, so redirect the output:
+
+   ```bash
+   python3 tools/include.py terraform-v2/orb.yml > /tmp/terraform-v2_orb.yml
+   ```
+
+   A `SyntaxWarning: "\<" is an invalid escape sequence` on Python 3.12+ is expected and does not affect the output.
+
+3. Validate:
+
+   ```bash
+   circleci orb validate /tmp/terraform-v2_orb.yml
+   ```
+
+4. Get the latest published version:
+
+   ```bash
+   circleci orb get pendo/terraform-v2
+   ```
+
+5. Diff against the latest version to confirm only the expected changes are included (replace `X.Y.Z` with the version from step 4):
+
+   ```bash
+   circleci orb source pendo/terraform-v2@X.Y.Z > /tmp/terraform-v2_current.yml
+   diff /tmp/terraform-v2_current.yml /tmp/terraform-v2_orb.yml
+   ```
+
+6. Publish the next version. Published versions are immutable.
+
+   ```bash
+   circleci orb publish /tmp/terraform-v2_orb.yml pendo/terraform-v2@X.Y.Z
+   ```
+
+7. Confirm:
+
+   ```bash
+   circleci orb get pendo/terraform-v2
+   ```
+
+### Testing before release
+
+To test a change from a consuming repo before releasing, publish a dev version. Dev versions can be overwritten and expire after 90 days.
+
+```bash
+circleci orb publish /tmp/terraform-v2_orb.yml pendo/terraform-v2@dev:<branch-name>
+```
+
+Reference it in the consuming repo as `pendo/terraform-v2@dev:<branch-name>`.
+
+### After release
+
+Bump the orb version in the consuming repos:
+
+| Repo | File |
+| --- | --- |
+| pendo-infra | `.circleci/continue-config.yml` |
+| pendo-infra-org | `.circleci/config.yml` |
+| terraform-aws | `.circleci/config.yml` |
+| terraform-azure | `.circleci/config.yml` |
+
+### CLI v1 command changes
+
+| Pre-v1 | v1 |
+| --- | --- |
+| `circleci orb info pendo/terraform-v2` | `circleci orb get pendo/terraform-v2` |
+| `circleci orb publish increment <file> <orb> patch` | `circleci orb publish increment <file> <orb> --bump patch` |
+| `circleci orb publish promote <orb>@dev:<label> patch` | `circleci orb publish promote <orb>@dev:<label> --bump patch` |
